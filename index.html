@@ -407,6 +407,51 @@
 
     .player-row:hover { border-color: #2e4060; }
 
+    /* AVATAR PHOTO */
+    .avatar-img {
+      width: 34px; height: 34px; border-radius: 50%;
+      object-fit: cover; display: block;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .avatar-img:hover { transform: scale(1.1); box-shadow: 0 0 0 2px var(--gold); }
+
+    .podium-avatar-img {
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      width: 100%; height: 100%;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .podium-avatar-img:hover { transform: scale(1.05); }
+
+    /* LIGHTBOX */
+    #lightbox {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+      display: none; align-items: center; justify-content: center;
+      z-index: 1000; backdrop-filter: blur(8px);
+    }
+    #lightbox.open { display: flex; animation: lbIn 0.2s ease; }
+    @keyframes lbIn { from{opacity:0;} to{opacity:1;} }
+    #lightbox img {
+      max-width: 88vw; max-height: 82vh; border-radius: 14px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.9);
+      animation: lbImg 0.3s cubic-bezier(0.22,1,0.36,1);
+    }
+    @keyframes lbImg { from{transform:scale(0.8);opacity:0;} to{transform:scale(1);opacity:1;} }
+    #lightbox-close {
+      position: absolute; top: 20px; right: 24px;
+      font-size: 28px; color: var(--muted); cursor: pointer; line-height: 1;
+      transition: color 0.2s;
+    }
+    #lightbox-close:hover { color: var(--text); }
+    #lightbox-name {
+      position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+      font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--text);
+      text-shadow: 0 2px 8px rgba(0,0,0,0.8); white-space: nowrap;
+    }
+
     /* DERNIER — la honte */
     .player-row.loser {
       border-color: rgba(239,68,68,0.25);
@@ -973,7 +1018,7 @@
 <header>
   <div class="header-eyebrow">⚽ Classement officiel</div>
   <h1>Prono <span>Les Tifas</span></h1>
-  <a href="admin.html" class="admin-link">Admin</a>
+  <a href="/admin" class="admin-link">Admin</a>
   <div id="next-match" style="display:none" class="next-match">
     <canvas id="match-canvas"></canvas>
     <div class="match-inner" id="match-inner"></div>
@@ -1030,6 +1075,13 @@
   </div>
 </div>
 
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="closeLightbox(event)">
+  <span id="lightbox-close" onclick="closeLightbox()">✕</span>
+  <img id="lightbox-img" src="" alt="">
+  <span id="lightbox-name"></span>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script>
@@ -1057,9 +1109,12 @@
       const slot = document.createElement('div');
       slot.className = `podium-slot ${rankClasses[rankIndex]}`;
       const color = COLORS[p._index % COLORS.length];
+      const avatarContent = p.avatar_url
+        ? `<img class="podium-avatar-img" src="${p.avatar_url}" alt="${p.name}" onclick="openLightbox('${p.avatar_url}','${p.name.replace(/'/g,"\\'")}')">` 
+        : initials(p.name);
       slot.innerHTML = `
         <div class="podium-crown">${medals[rankIndex]}</div>
-        <div class="podium-avatar" style="background:${color}22;border-color:${color};color:${color}">${initials(p.name)}</div>
+        <div class="podium-avatar" style="background:${color}22;border-color:${color};color:${color};overflow:hidden">${avatarContent}</div>
         <div class="podium-name">${p.name}</div>
         <div class="podium-pts">${p.points}</div>
         <div class="podium-label">pts</div>
@@ -1151,12 +1206,16 @@
       const isLast = (i === rest.length - 1) && players.length > 1;
       const boos = ['😬 Ouuuuh nul !', '🍌 Dernier...', '💀 Honte à toi', '🤦 T\'es sérieux ?'];
       const boo = boos[p.id % boos.length];
+      const avatarContent = p.avatar_url
+        ? `<img class="avatar-img" src="${p.avatar_url}" alt="${p.name}" onclick="openLightbox('${p.avatar_url}','${p.name.replace(/'/g,"\\'")}')">` 
+        : (isLast ? `<span class="loser-emoji">😢</span>` : initials(p.name));
+      const avatarStyle = p.avatar_url ? '' : `style="background:${color}22;color:${color}"`;
       return `
         <div class="player-row${isLast ? ' loser' : ''}">
           ${isLast ? `<span class="loser-boo">${boo}</span>` : ''}
           <span class="rank">${isLast ? '💩' : rank}</span>
           <div class="player-info">
-            <div class="avatar" style="background:${color}22;color:${color}">${isLast ? `<span class="loser-emoji">😢</span>` : initials(p.name)}</div>
+            <div class="avatar" ${avatarStyle}>${avatarContent}</div>
             <span class="player-name">${p.name}</span>
           </div>
           <span class="player-pts">${p.points}<span class="pts-unit">pts</span></span>
@@ -1378,6 +1437,17 @@
       }, 2000);
     });
   }
+
+  function openLightbox(url, name) {
+    document.getElementById('lightbox-img').src = url;
+    document.getElementById('lightbox-name').textContent = name;
+    document.getElementById('lightbox').classList.add('open');
+  }
+  function closeLightbox(e) {
+    if (!e || e.target === document.getElementById('lightbox') || e.target === document.getElementById('lightbox-close'))
+      document.getElementById('lightbox').classList.remove('open');
+  }
+  document.addEventListener('keydown', e => { if(e.key==='Escape') document.getElementById('lightbox').classList.remove('open'); });
 
   // ── HISTORIQUE ───────────────────────────────────────────────
   function timeAgo(dateStr) {
