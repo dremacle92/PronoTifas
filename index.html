@@ -286,12 +286,16 @@
   function renderPodium(top3) {
     const podium = document.getElementById('podium');
     podium.style.display = 'flex';
-    const classes = ['second','first','third'];
-    const orders = [1, 0, 2];
+    // classes[i] = style du rang i+1 (0=1er, 1=2e, 2=3e)
+    const rankClasses = ['first', 'second', 'third'];
+    // Ordre d'affichage visuel : 2e à gauche, 1er au centre, 3e à droite
+    const displayOrder = [1, 0, 2]; // index dans top3 → position visuelle
     podium.innerHTML = '';
-    top3.forEach((p, i) => {
+    // Créer les slots dans l'ordre d'affichage (2e, 1er, 3e)
+    displayOrder.forEach(rankIndex => {
+      const p = top3[rankIndex];
       const slot = document.createElement('div');
-      slot.className = `podium-slot ${classes[i]}`;
+      slot.className = `podium-slot ${rankClasses[rankIndex]}`;
       const color = COLORS[p._index % COLORS.length];
       slot.innerHTML = `
         <div class="podium-avatar" style="background:${color}22;border-color:${color};color:${color}">${initials(p.name)}</div>
