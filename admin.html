@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin · Prono Les Tifas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --surface: #111827;
+      --surface2: #16202f;
+      --border: #1e2d40;
+      --gold: #f5a623;
+      --red: #ef4444;
+      --green: #22c55e;
+      --text: #e8edf5;
+      --muted: #6b7a94;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
+
+    /* LOGIN */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+    }
+
+    .login-card h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+
+    .login-card p { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+
+    input[type="password"], input[type="text"], input[type="number"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 11px 14px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: var(--gold); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.4; cursor: default; }
+
+    .btn-primary { background: var(--gold); color: #0a0e1a; width: 100%; margin-top: 12px; padding: 12px; }
+    .btn-primary:hover:not(:disabled) { opacity: 0.9; }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+    .btn-danger { background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+    .btn-danger:hover { background: rgba(239,68,68,0.2); }
+    .btn-save { background: rgba(34,197,94,0.12); color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
+    .btn-save:hover { background: rgba(34,197,94,0.2); }
+
+    .error-msg { color: var(--red); font-size: 12px; margin-top: 10px; display: none; }
+
+    /* ADMIN PANEL */
+    #admin-panel { display: none; }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      color: var(--gold);
+    }
+
+    header nav { display: flex; gap: 10px; align-items: center; }
+    header nav a { font-size: 13px; color: var(--muted); text-decoration: none; }
+    header nav a:hover { color: var(--text); }
+
+    main { max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    /* ADD PLAYER */
+    .add-form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 40px;
+    }
+    .add-form input { flex: 1; }
+    .add-form input[type="number"] { width: 110px; flex: none; }
+
+    /* PLAYER LIST */
+    .player-item {
+      display: grid;
+      grid-template-columns: 1fr 120px auto auto;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .player-item-name {
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .rank-badge {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 14px;
+      color: var(--muted);
+      min-width: 20px;
+    }
+
+    .pts-input {
+      text-align: center;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .spinner {
+      width: 22px; height: 22px;
+      border: 2px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 40px auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 500px) {
+      .player-item { grid-template-columns: 1fr 90px auto; }
+      .player-item .btn-danger { display: none; }
+      header { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <h2>Admin</h2>
+    <p>Prono Les Tifas</p>
+    <input type="password" id="pwd-input" placeholder="Mot de passe admin" autocomplete="current-password">
+    <button class="btn btn-primary" onclick="login()">Connexion</button>
+    <div class="error-msg" id="login-error">Mot de passe incorrect.</div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel">
+  <header>
+    <h1>⚙ Admin · Les Tifas</h1>
+    <nav>
+      <a href="index.html">← Voir le classement</a>
+      <button class="btn btn-ghost" onclick="logout()">Déconnexion</button>
+    </nav>
+  </header>
+
+  <main>
+    <div class="section-title">Ajouter un joueur</div>
+    <div class="add-form">
+      <input type="text" id="new-name" placeholder="Nom du joueur" maxlength="40">
+      <input type="number" id="new-pts" placeholder="Points" value="0" min="0">
+      <button class="btn btn-primary" style="width:auto" onclick="addPlayer()">Ajouter</button>
+    </div>
+
+    <div class="section-title">Joueurs & points</div>
+    <div id="player-list"><div class="spinner"></div></div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // --- AUTH (simple mot de passe côté client) ---
+  function login() {
+    const val = document.getElementById('pwd-input').value;
+    if (val === ADMIN_PASSWORD) {
+      sessionStorage.setItem('tifas_admin', '1');
+      showPanel();
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+    }
+  }
+
+  function logout() {
+    sessionStorage.removeItem('tifas_admin');
+    location.reload();
+  }
+
+  function showPanel() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+    loadPlayers();
+  }
+
+  document.getElementById('pwd-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') login();
+  });
+
+  if (sessionStorage.getItem('tifas_admin') === '1') showPanel();
+
+  // --- DATA ---
+  let players = [];
+
+  async function loadPlayers() {
+    const { data, error } = await db.from('players').select('*').order('points', { ascending: false });
+    if (error) { toast('Erreur Supabase : ' + error.message); return; }
+    players = data || [];
+    renderPlayers();
+  }
+
+  function renderPlayers() {
+    const el = document.getElementById('player-list');
+    if (players.length === 0) {
+      el.innerHTML = '<p style="color:var(--muted);font-size:14px">Aucun joueur. Ajoutes-en un ci-dessus.</p>';
+      return;
+    }
+    el.innerHTML = players.map((p, i) => `
+      <div class="player-item" id="row-${p.id}">
+        <div class="player-item-name">
+          <span class="rank-badge">${i + 1}</span>
+          ${p.name}
+        </div>
+        <input type="number" class="pts-input" value="${p.points}" min="0"
+          onkeydown="if(event.key==='Enter') savePoints(${p.id}, this.value)"
+          id="pts-${p.id}">
+        <button class="btn btn-save" onclick="savePoints(${p.id}, document.getElementById('pts-${p.id}').value)">✓</button>
+        <button class="btn btn-danger" onclick="deletePlayer(${p.id}, '${p.name.replace(/'/g, "\\'")}')">✕</button>
+      </div>
+    `).join('');
+  }
+
+  async function addPlayer() {
+    const name = document.getElementById('new-name').value.trim();
+    const points = parseInt(document.getElementById('new-pts').value) || 0;
+    if (!name) { toast('Entre un nom de joueur.'); return; }
+
+    const { error } = await db.from('players').insert({ name, points });
+    if (error) { toast('Erreur : ' + error.message); return; }
+
+    document.getElementById('new-name').value = '';
+    document.getElementById('new-pts').value = '0';
+    toast(`${name} ajouté !`);
+    loadPlayers();
+  }
+
+  async function savePoints(id, val) {
+    const points = parseInt(val);
+    if (isNaN(points) || points < 0) { toast('Valeur invalide.'); return; }
+
+    const { error } = await db.from('players').update({ points }).eq('id', id);
+    if (error) { toast('Erreur : ' + error.message); return; }
+
+    toast('Points mis à jour !');
+    loadPlayers();
+  }
+
+  async function deletePlayer(id, name) {
+    if (!confirm(`Supprimer "${name}" ?`)) return;
+    const { error } = await db.from('players').delete().eq('id', id);
+    if (error) { toast('Erreur : ' + error.message); return; }
+    toast(`${name} supprimé.`);
+    loadPlayers();
+  }
+
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+</script>
+</body>
+</html>
