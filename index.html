@@ -726,6 +726,106 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* BULLE DON */
+    .don-bubble {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    .don-toggle {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--gold);
+      border: none;
+      cursor: pointer;
+      font-size: 22px;
+      box-shadow: 0 4px 20px rgba(245,166,35,0.4);
+      animation: donFloat 3s ease-in-out infinite;
+      transition: transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .don-toggle:hover { transform: scale(1.1); }
+
+    @keyframes donFloat {
+      0%,100% { transform: translateY(0); box-shadow: 0 4px 20px rgba(245,166,35,0.4); }
+      50%      { transform: translateY(-6px); box-shadow: 0 10px 28px rgba(245,166,35,0.5); }
+    }
+    .don-toggle:hover { animation: none; transform: scale(1.1); }
+
+    .don-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      width: 260px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      display: none;
+      animation: panelPop 0.25s cubic-bezier(0.22,1,0.36,1);
+      transform-origin: bottom right;
+    }
+
+    .don-panel.open { display: block; }
+
+    @keyframes panelPop {
+      from { opacity: 0; transform: scale(0.85); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .don-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 14px;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    .don-option { margin-bottom: 4px; }
+
+    .don-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    .don-iban {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      font-family: monospace;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .don-copy {
+      background: rgba(245,166,35,0.1);
+      border: 1px solid rgba(245,166,35,0.25);
+      color: var(--gold);
+      border-radius: 6px;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .don-copy:hover { background: rgba(245,166,35,0.2); }
+
+    .don-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 12px 0;
+    }
+
     /* FOOTER */
     footer {
       text-align: center;
@@ -764,6 +864,25 @@
 </main>
 
 <footer>Mis à jour en temps réel · Prono Les Tifas 2026</footer>
+
+<!-- BULLE DON -->
+<div id="don-bubble" class="don-bubble">
+  <button class="don-toggle" onclick="toggleDon()" title="Faire un don">💸</button>
+  <div class="don-panel" id="don-panel">
+    <div class="don-title">Faire un don 🙏</div>
+    <div class="don-option">
+      <div class="don-label">Soutenir le concepteur du site 🤖</div>
+      <div class="don-iban">BE96 0634 2746 6305</div>
+      <button class="don-copy" onclick="copyIban('BE96 0634 2746 6305', this)">Copier</button>
+    </div>
+    <div class="don-divider"></div>
+    <div class="don-option">
+      <div class="don-label">Soutenir le bookmaker 😏</div>
+      <div class="don-iban">BE45 0016 7897 2289</div>
+      <button class="don-copy" onclick="copyIban('BE45 0016 7897 2289', this)">Copier</button>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
@@ -1091,8 +1210,48 @@
   // Rafraîchir le prochain match toutes les 5 minutes
   setInterval(loadNextMatch, 5 * 60 * 1000);
 
+
+  // ── DON ─────────────────────────────────────────────────────
+  function toggleDon() {
+    const panel = document.getElementById('don-panel');
+    panel.classList.toggle('open');
+  }
+
+  function copyIban(iban, btn) {
+    navigator.clipboard.writeText(iban).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = '✓ Copié !';
+      btn.style.background = 'rgba(34,197,94,0.15)';
+      btn.style.borderColor = 'rgba(34,197,94,0.3)';
+      btn.style.color = '#22c55e';
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+      }, 2000);
+    });
+  }
+
   // Realtime updates
   db.channel('players').on('postgres_changes', { event: '*', schema: 'public', table: 'players' }, load).subscribe();
+
+  // ── DON ─────────────────────────────────────────────────────
+  function toggleDon() {
+    document.getElementById('don-panel').classList.toggle('open');
+  }
+  function copyIban(iban, btn) {
+    navigator.clipboard.writeText(iban).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = '✓ Copié !';
+      btn.style.cssText += 'background:rgba(34,197,94,0.15);border-color:rgba(34,197,94,0.3);color:#22c55e';
+      setTimeout(() => { btn.textContent = orig; btn.style.cssText = ''; }, 2000);
+    });
+  }
+  document.addEventListener('click', e => {
+    if (!document.getElementById('don-bubble').contains(e.target))
+      document.getElementById('don-panel').classList.remove('open');
+  });
 </script>
 </body>
 </html>
