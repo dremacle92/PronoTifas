@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin · Prono Les Tifas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0e1a; --surface: #111827; --surface2: #16202f;
+      --border: #1e2d40; --gold: #f5a623; --red: #ef4444;
+      --green: #22c55e; --text: #e8edf5; --muted: #6b7a94;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
+
+    /* LOGIN */
+    #login-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+    .login-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:40px; width:100%; max-width:360px; text-align:center; }
+    .login-card h2 { font-family:'Bebas Neue',sans-serif; font-size:32px; color:var(--gold); margin-bottom:6px; }
+    .login-card p { font-size:13px; color:var(--muted); margin-bottom:28px; }
+
+    input[type="password"], input[type="text"], input[type="number"] {
+      width:100%; background:var(--bg); border:1px solid var(--border); border-radius:8px;
+      padding:11px 14px; color:var(--text); font-size:14px; font-family:'Inter',sans-serif;
+      outline:none; transition:border-color 0.2s;
+    }
+    input:focus { border-color:var(--gold); }
+
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:10px 18px; border-radius:8px; border:none; cursor:pointer; font-size:13px; font-weight:600; font-family:'Inter',sans-serif; transition:opacity 0.2s, transform 0.1s; }
+    .btn:active { transform:scale(0.97); }
+    .btn:disabled { opacity:0.4; cursor:default; }
+    .btn-primary { background:var(--gold); color:#0a0e1a; width:100%; margin-top:12px; padding:12px; }
+    .btn-primary:hover:not(:disabled) { opacity:0.9; }
+    .btn-ghost { background:transparent; color:var(--muted); border:1px solid var(--border); }
+    .btn-ghost:hover { color:var(--text); border-color:var(--muted); }
+    .btn-danger { background:rgba(239,68,68,0.12); color:var(--red); border:1px solid rgba(239,68,68,0.2); }
+    .btn-danger:hover { background:rgba(239,68,68,0.2); }
+    .btn-save { background:rgba(34,197,94,0.12); color:var(--green); border:1px solid rgba(34,197,94,0.2); }
+    .btn-save:hover { background:rgba(34,197,94,0.2); }
+    .btn-photo { background:rgba(245,166,35,0.1); color:var(--gold); border:1px solid rgba(245,166,35,0.2); padding:6px 10px; font-size:12px; }
+    .btn-photo:hover { background:rgba(245,166,35,0.2); }
+
+    .error-msg { color:var(--red); font-size:12px; margin-top:10px; display:none; }
+
+    #admin-panel { display:none; }
+    header { display:flex; align-items:center; justify-content:space-between; padding:20px 32px; border-bottom:1px solid var(--border); }
+    header h1 { font-family:'Bebas Neue',sans-serif; font-size:28px; color:var(--gold); }
+    header nav { display:flex; gap:10px; align-items:center; }
+    header nav a { font-size:13px; color:var(--muted); text-decoration:none; }
+    header nav a:hover { color:var(--text); }
+
+    main { max-width:760px; margin:0 auto; padding:40px 20px 80px; }
+
+    .section-title { font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:16px; }
+
+    .add-form { display:flex; gap:10px; margin-bottom:40px; }
+    .add-form input { flex:1; }
+    .add-form input[type="number"] { width:110px; flex:none; }
+
+    /* PLAYER ITEM */
+    .player-item {
+      display:grid;
+      grid-template-columns: 52px 1fr 120px auto auto auto;
+      align-items:center;
+      gap:10px;
+      padding:12px 16px;
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:10px;
+      margin-bottom:8px;
+    }
+
+    .player-item-name { font-size:14px; font-weight:500; display:flex; align-items:center; gap:10px; }
+    .rank-badge { font-family:'Bebas Neue',sans-serif; font-size:14px; color:var(--muted); min-width:20px; }
+    .pts-input { text-align:center; }
+
+    /* AVATAR ADMIN */
+    .admin-avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      overflow: hidden; cursor: pointer; position: relative;
+      border: 2px solid var(--border);
+      transition: border-color 0.2s;
+      flex-shrink: 0;
+    }
+    .admin-avatar:hover { border-color: var(--gold); }
+    .admin-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+    .admin-avatar .avatar-initials {
+      width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+      font-family:'Bebas Neue',sans-serif; font-size:18px; background:var(--border); color:var(--muted);
+    }
+    .admin-avatar .avatar-overlay {
+      position:absolute; inset:0; background:rgba(0,0,0,0.5);
+      display:flex; align-items:center; justify-content:center;
+      opacity:0; transition:opacity 0.2s; font-size:16px;
+    }
+    .admin-avatar:hover .avatar-overlay { opacity:1; }
+
+    /* UPLOAD PROGRESS */
+    .upload-progress {
+      position:absolute; bottom:0; left:0; right:0; height:3px;
+      background:var(--gold); transform:scaleX(0); transform-origin:left;
+      transition:transform 0.3s; border-radius:0 0 2px 2px;
+    }
+
+    /* LIGHTBOX */
+    #lightbox {
+      position:fixed; inset:0; background:rgba(0,0,0,0.85);
+      display:none; align-items:center; justify-content:center;
+      z-index:1000; backdrop-filter:blur(6px);
+      animation:lbIn 0.25s ease;
+    }
+    #lightbox.open { display:flex; }
+    @keyframes lbIn { from{opacity:0;} to{opacity:1;} }
+    #lightbox img {
+      max-width:90vw; max-height:85vh; border-radius:12px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.8);
+      animation:lbImg 0.3s cubic-bezier(0.22,1,0.36,1);
+    }
+    @keyframes lbImg { from{transform:scale(0.85);opacity:0;} to{transform:scale(1);opacity:1;} }
+    #lightbox-close {
+      position:absolute; top:20px; right:24px; font-size:28px;
+      color:var(--muted); cursor:pointer; line-height:1;
+      transition:color 0.2s;
+    }
+    #lightbox-close:hover { color:var(--text); }
+    #lightbox-name {
+      position:absolute; bottom:24px; left:50%; transform:translateX(-50%);
+      font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--text);
+      text-shadow:0 2px 8px rgba(0,0,0,0.8);
+    }
+
+    .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:10px 20px; border-radius:8px; font-size:13px; opacity:0; transition:opacity 0.3s, transform 0.3s; pointer-events:none; white-space:nowrap; }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+    .spinner { width:22px; height:22px; border:2px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin 0.7s linear infinite; margin:40px auto; }
+    @keyframes spin { to{transform:rotate(360deg);} }
+
+    @media (max-width:600px) {
+      .player-item { grid-template-columns: 44px 1fr 90px auto; }
+      .player-item .btn-danger { display:none; }
+      header { padding:16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <h2>Admin</h2>
+    <p>Prono Les Tifas</p>
+    <input type="password" id="pwd-input" placeholder="Mot de passe admin" autocomplete="current-password">
+    <button class="btn btn-primary" onclick="login()">Connexion</button>
+    <div class="error-msg" id="login-error">Mot de passe incorrect.</div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel">
+  <header>
+    <h1>⚙ Admin · Les Tifas</h1>
+    <nav>
+      <a href="index.html">← Voir le classement</a>
+      <button class="btn btn-ghost" onclick="logout()">Déconnexion</button>
+    </nav>
+  </header>
+
+  <main>
+    <div class="section-title">Ajouter un joueur</div>
+    <div class="add-form">
+      <input type="text" id="new-name" placeholder="Nom du joueur" maxlength="40">
+      <input type="number" id="new-pts" placeholder="Points" value="0" min="0">
+      <button class="btn btn-primary" style="width:auto" onclick="addPlayer()">Ajouter</button>
+    </div>
+
+    <div class="section-title">Joueurs & points</div>
+    <div id="player-list"><div class="spinner"></div></div>
+  </main>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="closeLightbox(event)">
+  <span id="lightbox-close" onclick="closeLightbox()">✕</span>
+  <img id="lightbox-img" src="" alt="">
+  <span id="lightbox-name"></span>
+</div>
+
+<!-- Input file caché -->
+<input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleFileChange(event)">
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // AUTH
+  function login() {
+    if (document.getElementById('pwd-input').value === ADMIN_PASSWORD) {
+      sessionStorage.setItem('tifas_admin', '1');
+      showPanel();
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+    }
+  }
+  function logout() { sessionStorage.removeItem('tifas_admin'); location.reload(); }
+  function showPanel() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+    loadPlayers();
+  }
+  document.getElementById('pwd-input').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
+  if (sessionStorage.getItem('tifas_admin') === '1') showPanel();
+
+  // DATA
+  let players = [];
+  let uploadTargetId = null;
+
+  async function loadPlayers() {
+    const { data, error } = await db.from('players').select('*').order('points', { ascending: false });
+    if (error) { toast('Erreur : ' + error.message); return; }
+    players = data || [];
+    renderPlayers();
+  }
+
+  function renderPlayers() {
+    const el = document.getElementById('player-list');
+    if (!players.length) {
+      el.innerHTML = '<p style="color:var(--muted);font-size:14px">Aucun joueur.</p>';
+      return;
+    }
+    el.innerHTML = players.map((p, i) => {
+      const avatarHtml = p.avatar_url
+        ? `<img src="${p.avatar_url}" alt="${p.name}">`
+        : `<div class="avatar-initials">${initials(p.name)}</div>`;
+      return `
+        <div class="player-item" id="row-${p.id}">
+          <div class="admin-avatar" onclick="onAvatarClick(${p.id}, '${p.avatar_url || ''}', '${p.name.replace(/'/g,"\\'")}')">
+            ${avatarHtml}
+            <div class="avatar-overlay">📷</div>
+            <div class="upload-progress" id="prog-${p.id}"></div>
+          </div>
+          <div class="player-item-name">
+            <span class="rank-badge">${i+1}</span>
+            ${p.name}
+          </div>
+          <input type="number" class="pts-input" value="${p.points}" min="0"
+            onkeydown="if(event.key==='Enter') savePoints(${p.id}, this.value)"
+            id="pts-${p.id}">
+          <button class="btn btn-save" onclick="savePoints(${p.id}, document.getElementById('pts-${p.id}').value)">✓</button>
+          <button class="btn btn-danger" onclick="deletePlayer(${p.id}, '${p.name.replace(/'/g,"\\'")}')">✕</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function initials(name) {
+    return name.trim().split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  }
+
+  // AVATAR — clic : si photo existe → lightbox, sinon → upload
+  function onAvatarClick(id, url, name) {
+    if (url) {
+      openLightbox(url, name);
+    } else {
+      triggerUpload(id);
+    }
+  }
+
+  function triggerUpload(id) {
+    uploadTargetId = id;
+    document.getElementById('file-input').value = '';
+    document.getElementById('file-input').click();
+  }
+
+  async function handleFileChange(e) {
+    const file = e.target.files[0];
+    if (!file || !uploadTargetId) return;
+    const id = uploadTargetId;
+
+    // Vérif taille
+    if (file.size > 5 * 1024 * 1024) { toast('Image trop lourde (max 5MB)'); return; }
+
+    const ext = file.name.split('.').pop();
+    const path = `avatars/${id}_${Date.now()}.${ext}`;
+
+    // Barre de progression simulée
+    const prog = document.getElementById(`prog-${id}`);
+    if (prog) { prog.style.transform = 'scaleX(0.4)'; }
+
+    const { error: upErr } = await db.storage.from('avatars').upload(path, file, { upsert: true });
+    if (upErr) { toast('Erreur upload : ' + upErr.message); if(prog) prog.style.transform='scaleX(0)'; return; }
+
+    if (prog) prog.style.transform = 'scaleX(0.8)';
+
+    const { data: urlData } = db.storage.from('avatars').getPublicUrl(path);
+    const avatar_url = urlData.publicUrl;
+
+    const { error: dbErr } = await db.from('players').update({ avatar_url }).eq('id', id);
+    if (dbErr) { toast('Erreur DB : ' + dbErr.message); return; }
+
+    if (prog) { prog.style.transform = 'scaleX(1)'; setTimeout(() => { prog.style.transform = 'scaleX(0)'; }, 400); }
+
+    toast('Photo mise à jour !');
+    loadPlayers();
+  }
+
+  // LIGHTBOX
+  function openLightbox(url, name) {
+    document.getElementById('lightbox-img').src = url;
+    document.getElementById('lightbox-name').textContent = name;
+    document.getElementById('lightbox').classList.add('open');
+  }
+
+  function closeLightbox(e) {
+    if (!e || e.target === document.getElementById('lightbox') || e.target === document.getElementById('lightbox-close')) {
+      document.getElementById('lightbox').classList.remove('open');
+    }
+  }
+
+  document.addEventListener('keydown', e => { if(e.key==='Escape') document.getElementById('lightbox').classList.remove('open'); });
+
+  async function addPlayer() {
+    const name = document.getElementById('new-name').value.trim();
+    const points = parseInt(document.getElementById('new-pts').value) || 0;
+    if (!name) { toast('Entre un nom de joueur.'); return; }
+    const { error } = await db.from('players').insert({ name, points });
+    if (error) { toast('Erreur : ' + error.message); return; }
+    document.getElementById('new-name').value = '';
+    document.getElementById('new-pts').value = '0';
+    toast(`${name} ajouté !`);
+    loadPlayers();
+  }
+
+  async function savePoints(id, val) {
+    const points = parseInt(val);
+    if (isNaN(points) || points < 0) { toast('Valeur invalide.'); return; }
+    const player = players.find(p => p.id === id);
+    if (!player) return;
+    const { error } = await db.from('players').update({ points }).eq('id', id);
+    if (error) { toast('Erreur : ' + error.message); return; }
+    await db.from('history').insert({ player_id: id, player_name: player.name, pts_before: player.points, pts_after: points });
+    toast('Points mis à jour !');
+    loadPlayers();
+  }
+
+  async function deletePlayer(id, name) {
+    if (!confirm(`Supprimer "${name}" ?`)) return;
+    const { error } = await db.from('players').delete().eq('id', id);
+    if (error) { toast('Erreur : ' + error.message); return; }
+    toast(`${name} supprimé.`);
+    loadPlayers();
+  }
+
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+</script>
+</body>
+</html>
