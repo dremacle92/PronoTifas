@@ -321,8 +321,21 @@
     const points = parseInt(val);
     if (isNaN(points) || points < 0) { toast('Valeur invalide.'); return; }
 
+    // Récupérer les points actuels avant update
+    const player = players.find(p => p.id === id);
+    if (!player) return;
+    const ptsBefore = player.points;
+
     const { error } = await db.from('players').update({ points }).eq('id', id);
     if (error) { toast('Erreur : ' + error.message); return; }
+
+    // Enregistrer dans l'historique
+    await db.from('history').insert({
+      player_id: id,
+      player_name: player.name,
+      pts_before: ptsBefore,
+      pts_after: points,
+    });
 
     toast('Points mis à jour !');
     loadPlayers();

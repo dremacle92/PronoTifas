@@ -70,11 +70,143 @@
     }
     .admin-link:hover { color: var(--text); border-color: var(--muted); }
 
-    /* MAIN */
-    main {
-      max-width: 680px;
+    /* LAYOUT */
+    .page-layout {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 32px;
+      max-width: 1060px;
       margin: 0 auto;
       padding: 40px 20px 80px;
+      align-items: start;
+    }
+
+    main {
+      min-width: 0;
+    }
+
+    /* HISTORIQUE — colonne droite */
+    .history-col {
+      position: sticky;
+      top: 24px;
+    }
+
+    .history-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .history-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .history-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .history-count {
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--border);
+      border-radius: 20px;
+      padding: 2px 8px;
+    }
+
+    .history-list {
+      max-height: 520px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .history-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(30,45,64,0.5);
+      animation: historyIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    @keyframes historyIn {
+      from { opacity: 0; transform: translateX(12px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .history-item:last-child { border-bottom: none; }
+
+    .history-item-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .history-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .history-time {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .history-change {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .history-pts-before {
+      color: var(--muted);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px;
+    }
+
+    .history-arrow { color: var(--muted); font-size: 10px; }
+
+    .history-pts-after {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px;
+    }
+
+    .history-pts-after.up   { color: var(--green); }
+    .history-pts-after.down { color: #ef4444; }
+    .history-pts-after.same { color: var(--muted); }
+
+    .history-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: 20px;
+      margin-left: auto;
+    }
+
+    .history-badge.up   { background: rgba(34,197,94,0.1);  color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
+    .history-badge.down { background: rgba(239,68,68,0.1);  color: #ef4444;      border: 1px solid rgba(239,68,68,0.2); }
+    .history-badge.same { background: rgba(107,122,148,0.1); color: var(--muted); border: 1px solid var(--border); }
+
+    .history-empty {
+      padding: 32px 16px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 860px) {
+      .page-layout { grid-template-columns: 1fr; }
+      .history-col { position: static; }
+      .history-list { max-height: 280px; }
     }
 
     /* NEXT MATCH — widget compact coin supérieur droit du header */
@@ -848,6 +980,7 @@
   </div>
 </header>
 
+<div class="page-layout">
 <main>
   <div id="podium-section" style="display:none" class="podium-section">
     <canvas id="podium-canvas"></canvas>
@@ -863,6 +996,19 @@
   </div>
 </main>
 
+<aside class="history-col">
+  <div class="history-panel">
+    <div class="history-header">
+      <span class="history-title">📋 Historique</span>
+      <span class="history-count" id="history-count">—</span>
+    </div>
+    <div class="history-list" id="history-list">
+      <div class="history-empty">Aucun changement pour le moment.</div>
+    </div>
+  </div>
+</aside>
+</div>
+
 <footer>Mis à jour en temps réel · Prono Les Tifas 2026</footer>
 
 <!-- BULLE DON -->
@@ -871,7 +1017,7 @@
   <div class="don-panel" id="don-panel">
     <div class="don-title">Faire un don 🙏</div>
     <div class="don-option">
-      <div class="don-label">Soutenir le concepteur du site 🤖</div>
+      <div class="don-label">Soutenir la conception du site</div>
       <div class="don-iban">BE96 0634 2746 6305</div>
       <button class="don-copy" onclick="copyIban('BE96 0634 2746 6305', this)">Copier</button>
     </div>
@@ -1232,6 +1378,58 @@
       }, 2000);
     });
   }
+
+  // ── HISTORIQUE ───────────────────────────────────────────────
+  function timeAgo(dateStr) {
+    const diff = Math.floor((new Date() - new Date(dateStr)) / 1000);
+    if (diff < 60)  return 'à l\'instant';
+    if (diff < 3600) return `il y a ${Math.floor(diff/60)} min`;
+    if (diff < 86400) return `il y a ${Math.floor(diff/3600)}h`;
+    return `il y a ${Math.floor(diff/86400)}j`;
+  }
+
+  async function loadHistory() {
+    const { data } = await db
+      .from('history')
+      .select('*')
+      .order('changed_at', { ascending: false })
+      .limit(50);
+
+    const list = document.getElementById('history-list');
+    const count = document.getElementById('history-count');
+    if (!data || data.length === 0) {
+      list.innerHTML = '<div class="history-empty">Aucun changement pour le moment.</div>';
+      count.textContent = '0';
+      return;
+    }
+
+    count.textContent = data.length;
+    list.innerHTML = data.map((h, i) => {
+      const diff = h.pts_after - h.pts_before;
+      const dir = diff > 0 ? 'up' : diff < 0 ? 'down' : 'same';
+      const badge = diff > 0 ? `+${diff} pts` : diff < 0 ? `${diff} pts` : '= pts';
+      return `
+        <div class="history-item" style="animation-delay:${i * 0.03}s">
+          <div class="history-item-top">
+            <span class="history-name">${h.player_name}</span>
+            <span class="history-time">${timeAgo(h.changed_at)}</span>
+          </div>
+          <div class="history-change">
+            <span class="history-pts-before">${h.pts_before}</span>
+            <span class="history-arrow">→</span>
+            <span class="history-pts-after ${dir}">${h.pts_after} pts</span>
+            <span class="history-badge ${dir}">${badge}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  loadHistory();
+
+  db.channel('history-realtime')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'history' }, loadHistory)
+    .subscribe();
 
   // Realtime updates
   db.channel('players').on('postgres_changes', { event: '*', schema: 'public', table: 'players' }, load).subscribe();
