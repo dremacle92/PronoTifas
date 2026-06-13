@@ -562,6 +562,7 @@
     .mc-name { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .mc-team.home .mc-name { text-align: right; }
     .mc-mid { display: flex; flex-direction: column; align-items: center; gap: 1px; width: 48px; flex-shrink: 0; }
+    .mc-day { font-size: 8px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--gold); opacity: 0.85; }
     .mc-time { font-size: 11px; font-weight: 700; color: var(--text); }
     .mc-vs { font-family: 'Bebas Neue', sans-serif; font-size: 14px; color: var(--gold); opacity: 0.85; line-height: 1; }
     .matchday-foot { margin-top: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
@@ -1005,32 +1006,46 @@
     return new Date(utc).toLocaleDateString('en-CA', { timeZone: 'Europe/Brussels' });
   }
 
-  function matchCardHTML(m, i) {
+  // Repère court "Auj." / "Dem." / jour abrégé (heure belge)
+  function shortDayTag(utc) {
+    const k = brusselsDayKey(utc);
+    const now = new Date();
+    if (k === brusselsDayKey(now)) return 'Auj.';
+    if (k === brusselsDayKey(new Date(now.getTime() + 86400000))) return 'Dem.';
+    return new Date(utc).toLocaleDateString('fr-BE', { timeZone: 'Europe/Brussels', weekday: 'short' });
+  }
+
+  function matchCardHTML(m, i, showDay) {
     const home = m.homeTeam || {}, away = m.awayTeam || {};
     const hName = home.name || home.tla || 'À venir';
     const aName = away.name || away.tla || 'À venir';
     const t = new Date(m.utcDate).toLocaleTimeString('fr-BE', { timeZone: 'Europe/Brussels', hour: '2-digit', minute: '2-digit' });
     const isNext = i === 0;
+    const dayTag = showDay ? `<span class="mc-day">${shortDayTag(m.utcDate)}</span>` : '';
     return `
       <div class="match-card${isNext ? ' is-next' : ''}" style="animation-delay:${(i * 0.09).toFixed(2)}s">
         ${isNext ? '<span class="next-badge">⏱ Prochain</span>' : ''}
         <div class="mc-team home">${getFlagImg(home.tla, hName)}<span class="mc-name">${hName}</span></div>
-        <div class="mc-mid"><span class="mc-time">${t}</span><span class="mc-vs">VS</span></div>
+        <div class="mc-mid">${dayTag}<span class="mc-time">${t}</span><span class="mc-vs">VS</span></div>
         <div class="mc-team away">${getFlagImg(away.tla, aName)}<span class="mc-name">${aName}</span></div>
       </div>`;
   }
 
-  function renderMatchday(dayMatches) {
+  function renderMatchday(matches) {
     const el = document.getElementById('next-match');
     const inner = document.getElementById('match-inner');
-    const first = new Date(dayMatches[0].utcDate);
-    const dayLabel = first.toLocaleDateString('fr-BE', { timeZone: 'Europe/Brussels', weekday: 'long', day: 'numeric', month: 'long' });
+    const first = new Date(matches[0].utcDate);
+    const last  = new Date(matches[matches.length - 1].utcDate);
+    const multiDay = brusselsDayKey(first) !== brusselsDayKey(last);
+    const fmtLong  = d => d.toLocaleDateString('fr-BE', { timeZone: 'Europe/Brussels', weekday: 'long', day: 'numeric', month: 'long' });
+    const fmtShort = d => d.toLocaleDateString('fr-BE', { timeZone: 'Europe/Brussels', weekday: 'short', day: 'numeric', month: 'short' });
+    const label = multiDay ? `${fmtShort(first)} → ${fmtShort(last)}` : fmtLong(first);
     inner.innerHTML = `
-      <div class="match-eyebrow">⚽ Les matchs du jour · Coupe du Monde 2026</div>
-      <div class="matchday-date">${dayLabel}</div>
-      <div class="match-list">${dayMatches.map(matchCardHTML).join('')}</div>
+      <div class="match-eyebrow">⚽ Les matchs des prochaines 24 h · Coupe du Monde 2026</div>
+      <div class="matchday-date">${label}</div>
+      <div class="match-list">${matches.map((m, i) => matchCardHTML(m, i, multiDay)).join('')}</div>
       <div class="matchday-foot">
-        <span class="matchday-count">${dayMatches.length} match${dayMatches.length > 1 ? 's' : ''} ce jour-là</span>
+        <span class="matchday-count">${matches.length} match${matches.length > 1 ? 's' : ''} dans les 24 h</span>
         <span class="matchday-next-lbl">Coup d'envoi du 1ᵉʳ match dans</span>
         <div id="match-countdown-inner"></div>
       </div>
@@ -1040,7 +1055,6 @@
     renderCountdown(first);
     clearInterval(countdownInterval);
     countdownInterval = setInterval(() => renderCountdown(first), 1000);
-    requestAnimationFrame(startParticles);
   }
 
   async function loadMatchday() {
@@ -1049,12 +1063,15 @@
       const res = await fetch('/api/match');
       if (!res.ok) throw new Error();
       const data = await res.json();
-      let matches = (data.matches || []).filter(m => m && m.utcDate);
+      const now = Date.now();
+      const lo = now - 3 * 3600 * 1000;    // petite marge arrière (matchs en cours)
+      const hi = now + 24 * 3600 * 1000;   // 24 heures à venir
+      const matches = (data.matches || [])
+        .filter(m => m && m.utcDate)
+        .filter(m => { const ts = new Date(m.utcDate).getTime(); return ts >= lo && ts <= hi; })
+        .sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
       if (!matches.length) throw new Error();
-      matches.sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
-      const key = brusselsDayKey(matches[0].utcDate);
-      const dayMatches = matches.filter(m => brusselsDayKey(m.utcDate) === key);
-      renderMatchday(dayMatches);
+      renderMatchday(matches);
     } catch (e) {
       el.style.display = 'none';
     }
