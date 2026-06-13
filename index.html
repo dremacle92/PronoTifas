@@ -178,16 +178,15 @@
     /* ===== PROCHAIN MATCH (carte) ===== */
     .next-match {
       position: relative;
-      max-width: 460px; margin: 30px auto 0;
+      max-width: 600px; margin: 8px auto 36px; width: calc(100% - 32px);
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--r-lg);
-      padding: 20px 20px 22px;
+      padding: 22px 20px 24px;
       text-align: center;
       backdrop-filter: blur(16px);
       overflow: hidden;
       box-shadow: 0 18px 50px rgba(0,0,0,0.5);
-      animation: cardIn .8s cubic-bezier(0.22,1,0.36,1) .25s both;
     }
     @keyframes cardIn { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: none; } }
 
@@ -525,6 +524,50 @@
     @keyframes armCheerL { 0%,100% { transform: rotate(24deg); }  28% { transform: rotate(-142deg); } }
     @keyframes armCheerR { 0%,100% { transform: rotate(-24deg); } 28% { transform: rotate(142deg); } }
 
+    /* ===== BARRE HAUTE — groupe gauche ===== */
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+
+    /* ===== BOUTON MUSIQUE ===== */
+    #music-toggle.is-playing { color: var(--gold); border-color: rgba(255,194,75,0.45); }
+    #music-toggle.is-playing::after { content: ''; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; animation: musicPulse 1.4s ease-in-out infinite; }
+    @keyframes musicPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,194,75,0.45); } 50% { box-shadow: 0 0 16px 2px rgba(255,194,75,0.55); } }
+
+    /* ===== MATCHS DU JOUR (tableau) ===== */
+    .matchday-date { font-family: 'Bebas Neue', sans-serif; font-size: 25px; letter-spacing: 1px; color: var(--gold); text-transform: capitalize; margin-bottom: 14px; text-shadow: 0 0 18px rgba(255,194,75,0.35); }
+    .match-list { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; padding: 6px 4px; perspective: 800px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+    .match-list::-webkit-scrollbar { width: 5px; }
+    .match-list::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 9px; }
+    .match-card { position: relative; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px;
+      padding: 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border);
+      transform-origin: top center; animation: cardFlip .7s cubic-bezier(0.22,1,0.36,1) both;
+      transition: transform .25s, border-color .25s, box-shadow .25s; }
+    .match-card:hover { transform: translateY(-3px); border-color: var(--border-strong); box-shadow: 0 12px 30px rgba(0,0,0,0.42); }
+    @keyframes cardFlip {
+      0%   { opacity: 0; transform: perspective(700px) rotateX(-72deg) translateY(16px); }
+      60%  { opacity: 1; transform: perspective(700px) rotateX(7deg); }
+      100% { opacity: 1; transform: perspective(700px) rotateX(0); }
+    }
+    .match-card.is-next { border-color: rgba(255,194,75,0.45); background: rgba(255,194,75,0.06); }
+    .match-card.is-next::before { content: ''; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; animation: nextGlow 2s ease-in-out infinite; }
+    @keyframes nextGlow { 0%,100% { box-shadow: 0 0 12px 0 rgba(255,194,75,0.22); } 50% { box-shadow: 0 0 22px 3px rgba(255,194,75,0.5); } }
+    .next-badge { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); z-index: 3;
+      background: linear-gradient(135deg, var(--gold), var(--gold-deep)); color: #1a1205;
+      font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      padding: 2px 10px; border-radius: 999px; white-space: nowrap; box-shadow: 0 4px 12px rgba(255,194,75,0.4); }
+    .mc-team { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .mc-team.home { flex-direction: row-reverse; justify-content: flex-start; }
+    .mc-team.away { justify-content: flex-start; }
+    .mc-team .flag-wrap { width: 42px; height: 28px; flex-shrink: 0; box-shadow: 0 4px 14px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08); }
+    .mc-team.away .flag-wrap { transform-origin: right center; animation-name: flagWaveR; }
+    .mc-name { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mc-team.home .mc-name { text-align: right; }
+    .mc-mid { display: flex; flex-direction: column; align-items: center; gap: 1px; width: 48px; flex-shrink: 0; }
+    .mc-time { font-size: 11px; font-weight: 700; color: var(--text); }
+    .mc-vs { font-family: 'Bebas Neue', sans-serif; font-size: 14px; color: var(--gold); opacity: 0.85; line-height: 1; }
+    .matchday-foot { margin-top: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .matchday-count { font-size: 11px; color: var(--muted); }
+    .matchday-next-lbl { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); }
+
     /* ===== OLA SUR LE PODIUM ===== */
     .podium-avatar { animation: podiumOla 3.4s ease-in-out infinite; }
     .second .podium-avatar { animation-delay: 0s; }
@@ -584,21 +627,27 @@
 </div>
 <canvas id="celebrate-canvas" aria-hidden="true"></canvas>
 
-<!-- BARRE HAUTE : son (gauche) + admin (droite), toujours visibles -->
+<!-- BARRE HAUTE : son + musique (gauche) · admin (droite), toujours visibles -->
 <div class="topbar">
-  <button class="topbar-btn" id="sound-toggle" onclick="toggleSound()" aria-label="Activer ou couper le son" title="Son">🔊</button>
+  <div class="topbar-left">
+    <button class="topbar-btn" id="sound-toggle" onclick="toggleSound()" aria-label="Activer ou couper le son" title="Effets sonores">🔊</button>
+    <button class="topbar-btn" id="music-toggle" onclick="toggleMusic()" aria-label="Musique de fond" title="Musique : Allumer le feu 🔥">🎵</button>
+  </div>
   <a href="/admin.html" class="topbar-btn admin-link" aria-label="Admin">⚙ Admin</a>
 </div>
+<audio id="bg-music" src="music/allumer-le-feu.mp3" loop preload="none"></audio>
 
 <header class="hero">
   <div class="hero-eyebrow"><span class="live-dot"></span> Classement officiel · saison 2026</div>
   <h1 class="title"><span class="t-prono">PRONO</span> <span class="t-tifas">LES&nbsp;TIFAS</span></h1>
   <p class="hero-sub">Le championnat de pronostics des Tifas — Coupe du Monde 2026</p>
-  <div id="next-match" style="display:none" class="next-match">
-    <canvas id="match-canvas"></canvas>
-    <div class="match-inner" id="match-inner"></div>
-  </div>
 </header>
+
+<!-- LES MATCHS DU JOUR -->
+<div id="next-match" style="display:none" class="next-match reveal">
+  <canvas id="match-canvas"></canvas>
+  <div class="match-inner" id="match-inner"></div>
+</div>
 
 <div class="page-layout">
 <main>
@@ -951,47 +1000,61 @@
     el.innerHTML = `<div class="cd">${parts.join('')}</div>`;
   }
 
-  async function loadNextMatch() {
+  // Jour (YYYY-MM-DD) d'un match en heure belge
+  function brusselsDayKey(utc) {
+    return new Date(utc).toLocaleDateString('en-CA', { timeZone: 'Europe/Brussels' });
+  }
+
+  function matchCardHTML(m, i) {
+    const home = m.homeTeam || {}, away = m.awayTeam || {};
+    const hName = home.name || home.tla || 'À venir';
+    const aName = away.name || away.tla || 'À venir';
+    const t = new Date(m.utcDate).toLocaleTimeString('fr-BE', { timeZone: 'Europe/Brussels', hour: '2-digit', minute: '2-digit' });
+    const isNext = i === 0;
+    return `
+      <div class="match-card${isNext ? ' is-next' : ''}" style="animation-delay:${(i * 0.09).toFixed(2)}s">
+        ${isNext ? '<span class="next-badge">⏱ Prochain</span>' : ''}
+        <div class="mc-team home">${getFlagImg(home.tla, hName)}<span class="mc-name">${hName}</span></div>
+        <div class="mc-mid"><span class="mc-time">${t}</span><span class="mc-vs">VS</span></div>
+        <div class="mc-team away">${getFlagImg(away.tla, aName)}<span class="mc-name">${aName}</span></div>
+      </div>`;
+  }
+
+  function renderMatchday(dayMatches) {
     const el = document.getElementById('next-match');
     const inner = document.getElementById('match-inner');
+    const first = new Date(dayMatches[0].utcDate);
+    const dayLabel = first.toLocaleDateString('fr-BE', { timeZone: 'Europe/Brussels', weekday: 'long', day: 'numeric', month: 'long' });
+    inner.innerHTML = `
+      <div class="match-eyebrow">⚽ Les matchs du jour · Coupe du Monde 2026</div>
+      <div class="matchday-date">${dayLabel}</div>
+      <div class="match-list">${dayMatches.map(matchCardHTML).join('')}</div>
+      <div class="matchday-foot">
+        <span class="matchday-count">${dayMatches.length} match${dayMatches.length > 1 ? 's' : ''} ce jour-là</span>
+        <span class="matchday-next-lbl">Coup d'envoi du 1ᵉʳ match dans</span>
+        <div id="match-countdown-inner"></div>
+      </div>
+    `;
+    el.style.display = 'block';
+    el.classList.add('in');
+    renderCountdown(first);
+    clearInterval(countdownInterval);
+    countdownInterval = setInterval(() => renderCountdown(first), 1000);
+    requestAnimationFrame(startParticles);
+  }
+
+  async function loadMatchday() {
+    const el = document.getElementById('next-match');
     try {
       const res = await fetch('/api/match');
       if (!res.ok) throw new Error();
       const data = await res.json();
-      const matches = data.matches || [];
+      let matches = (data.matches || []).filter(m => m && m.utcDate);
       if (!matches.length) throw new Error();
-
-      const m = matches[0];
-      const home = m.homeTeam, away = m.awayTeam;
-      const matchDate = new Date(m.utcDate);
-      const timeStr = matchDate.toLocaleString('fr-BE', {
-        timeZone: 'Europe/Brussels',
-        weekday: 'long', day: 'numeric', month: 'long',
-        hour: '2-digit', minute: '2-digit'
-      });
-
-      el.style.display = 'block';
-      inner.innerHTML = `
-        <div class="match-eyebrow">⚽ Prochain match · Coupe du Monde 2026</div>
-        <div class="match-teams">
-          <div class="match-team home">
-            ${getFlagImg(home.tla, home.name)}
-            <span class="match-team-name">${home.name}</span>
-          </div>
-          <div class="match-vs-wrap"><span class="match-vs">VS</span></div>
-          <div class="match-team away">
-            ${getFlagImg(away.tla, away.name)}
-            <span class="match-team-name">${away.name}</span>
-          </div>
-        </div>
-        <div class="match-time"><strong>${timeStr}</strong> · heure belge</div>
-        <div id="match-countdown-inner"></div>
-      `;
-
-      renderCountdown(matchDate);
-      clearInterval(countdownInterval);
-      countdownInterval = setInterval(() => renderCountdown(matchDate), 1000);
-      requestAnimationFrame(startParticles);
+      matches.sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
+      const key = brusselsDayKey(matches[0].utcDate);
+      const dayMatches = matches.filter(m => brusselsDayKey(m.utcDate) === key);
+      renderMatchday(dayMatches);
     } catch (e) {
       el.style.display = 'none';
     }
@@ -1272,6 +1335,49 @@
     if (soundOn) { ensureAudio(); playTap(); }
   }
 
+  // ── MUSIQUE DE FOND ("Allumer le feu" 🔥) ────────────────────
+  let musicOn = (localStorage.getItem('tifas_music') || '0') === '1';
+  function updateMusicBtn() {
+    const a = document.getElementById('bg-music');
+    const b = document.getElementById('music-toggle');
+    if (!b) return;
+    const playing = a && !a.paused && !a.ended;
+    b.classList.toggle('is-playing', !!playing);
+    b.textContent = playing ? '🎶' : '🎵';
+  }
+  function playMusic() {
+    const a = document.getElementById('bg-music');
+    if (!a) return Promise.reject();
+    a.volume = 0.35;
+    return a.play();
+  }
+  function toggleMusic() {
+    const a = document.getElementById('bg-music');
+    if (!a) return;
+    if (a.paused) {
+      playMusic()
+        .then(() => { musicOn = true; try { localStorage.setItem('tifas_music', '1'); } catch (_) {} updateMusicBtn(); })
+        .catch(() => { updateMusicBtn(); }); // fichier manquant ou lecture bloquée
+    } else {
+      a.pause();
+      musicOn = false;
+      try { localStorage.setItem('tifas_music', '0'); } catch (_) {}
+      updateMusicBtn();
+    }
+  }
+  function initMusic() {
+    const a = document.getElementById('bg-music');
+    if (!a) return;
+    a.addEventListener('play', updateMusicBtn);
+    a.addEventListener('pause', updateMusicBtn);
+    a.addEventListener('ended', updateMusicBtn);
+    updateMusicBtn();
+    if (musicOn) { // reprise après un geste utilisateur (politique d'autoplay)
+      const start = () => { playMusic().catch(() => {}); window.removeEventListener('pointerdown', start); };
+      window.addEventListener('pointerdown', start, { once: true });
+    }
+  }
+
   // ── ONDULATION AU TAP (ripple) + son + vibration ─────────────
   function initTouchFX() {
     document.addEventListener('click', e => {
@@ -1344,12 +1450,13 @@
   initParallax();
   initTilt();
   initTouchFX();
+  initMusic();
   { const sb = document.getElementById('sound-toggle'); if (sb) sb.textContent = soundOn ? '🔊' : '🔇'; }
 
   load();
-  loadNextMatch();
+  loadMatchday();
   loadHistory();
-  setInterval(loadNextMatch, 5 * 60 * 1000);
+  setInterval(loadMatchday, 5 * 60 * 1000);
   setTimeout(celebrate, 450); // confettis de bienvenue
 
   // Reconstruire la tribune si la largeur change
